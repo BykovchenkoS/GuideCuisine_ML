@@ -26,13 +26,17 @@ def get_connection():
 def get_data():
     try:
         cursor = connection.cursor()
-        query = "SELECT id, name, price FROM companies;"
+        query = """
+                    SELECT id, price, id_type, id_cuisine FROM cuisinebot.companies c
+                    LEFT JOIN cuisinebot.companies_cuisine cc ON c.id = cc.id_company
+                    LEFT JOIN cuisinebot.companies_type ct ON c.id = ct.id_company;
+                """
         cursor.execute(query)
         results = cursor.fetchall()
         X = []
         y = []
         for result in results:
-            X.append([result[0], result[1], result[2]])
+            X.append([result[0], result[1], result[2], result[3]])
             y.append("label_suitability")
         return X, y
 
