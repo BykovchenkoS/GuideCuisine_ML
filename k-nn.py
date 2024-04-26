@@ -1,6 +1,6 @@
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
 import pandas as pd
@@ -9,6 +9,11 @@ from connect_db import get_data
 
 
 X, y = get_data()
+
+scaler = MinMaxScaler()
+X_normalized = scaler.fit_transform([[row[1]] for row in X])
+for i, row in enumerate(X):
+    row[1] = X_normalized[i][0]
 
 output_file = 'output.csv'
 
