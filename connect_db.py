@@ -27,9 +27,21 @@ def get_data():
     try:
         cursor = connection.cursor()
         query = """
-                    SELECT id, price, id_type, id_cuisine FROM cuisinebot.companies c
-                    LEFT JOIN cuisinebot.companies_cuisine cc ON c.id = cc.id_company
-                    LEFT JOIN cuisinebot.companies_type ct ON c.id = ct.id_company;
+                    SELECT 
+                        c.id, 
+                        c.price, 
+                        GROUP_CONCAT(DISTINCT ct.id_type SEPARATOR ',') AS id_types,
+                        GROUP_CONCAT(DISTINCT cc.id_cuisine SEPARATOR ',') AS id_cuisines
+                    FROM 
+                        cuisinebot.companies c
+                    LEFT JOIN 
+                        cuisinebot.companies_cuisine cc ON c.id = cc.id_company
+                    LEFT JOIN 
+                        cuisinebot.companies_type ct ON c.id = ct.id_company
+                    GROUP BY 
+                        c.id, c.price
+                    HAVING
+                        id_types IS NOT NULL AND id_cuisines IS NOT NULL;
                 """
         cursor.execute(query)
         results = cursor.fetchall()
@@ -48,5 +60,4 @@ connection = get_connection()
 
 if connection:
     X, y = get_data()
-    print(X)
 
