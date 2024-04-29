@@ -1,54 +1,60 @@
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from sklearn.neighbors import KNeighborsClassifier
-import numpy as np
 import pandas as pd
-import csv
-from connect_db import get_data
+import numpy as np
+from sklearn.neighbors import NearestNeighbors
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
 
+#Config
+NUMBER_OF_CLUSTERS = 3 #Max - number of data lines (companies)
+NUMBER_OF_NEIGHBORS = 5 #It influence on number of best IDs
+NUMBER_OF_PCA = 2
 
-X, y = get_data()
+#New
+user_data = [0.10,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0]
 
-scaler = MinMaxScaler()
-X_normalized = scaler.fit_transform([[row[1]] for row in X])
-for i, row in enumerate(X):
-    row[1] = X_normalized[i][0]
+#Learning
+data = pd.read_csv("data.csv")
+features = data.drop(columns=["id", "label_suitability"])
 
-output_file = 'output.csv'
+num_clusters = NUMBER_OF_CLUSTERS 
+kmeans = KMeans(n_clusters=num_clusters)
+kmeans.fit(features)
 
-# Открытие файла CSV для записи
-with open(output_file, 'w', newline='') as csvfile:
-    writer = csv.writer(csvfile)
+knn = NearestNeighbors(n_neighbors=NUMBER_OF_NEIGHBORS)  
+knn.fit(features)
 
-    # Запись заголовков столбцов
-    writer.writerow(
-        ['id', 'price', 'type_1', 'type_2', 'type_3', 'type_4', 'type_5', 'type_6', 'type_7', 'type_8', 'type_9',
-         'cuisine_1', 'cuisine_2', 'cuisine_3', 'cuisine_4', 'cuisine_5', 'cuisine_6', 'cuisine_7', 'cuisine_8',
-         'cuisine_9', 'cuisine_10', 'cuisine_11', 'cuisine_12', 'cuisine_13', 'label_suitability'])
+new_data = np.array([user_data]) 
+distances, indices = knn.kneighbors(new_data)
 
-    # Запись данных
-    writer.writerows(X)
+similar_ids = []
+for i in indices[0]:
+    similar_ids.append(data.iloc[i]['id'])
 
-with open(output_file, 'a', newline='') as csvfile:
-    writer = csv.writer(csvfile)
-    writer.writerow(['label_suitability'])
-    writer.writerows([[label] for label in y])
-#
-# data = pd.read_csv('data.csv')
-# X = data.drop(['id'], axis=1)
-# y = data['label_suitability']
-#
-# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=42, random_state=42)
-#
-# scaler = MinMaxScaler()
-# X_train_scaled = scaler.fit_transform(X_train)
-# X_test_scaled = scaler.transform(X_test)
-#
-# k = 5
-# knn = KNeighborsClassifier(n_neighbors=k)
-# knn.fit(X_train_scaled, y_train)
-#
-# y_pred = knn.predict(X_test_scaled)
-#
-# print("cheto:", y_pred)
+print("Best:", similar_ids[:10])
+
+# Reduce the feature dimensionality to 2 for visualization
+pca = PCA(n_components=NUMBER_OF_PCA)
+features_2d = pca.fit_transform(features)
+
+# Plot the clusters
+plt.figure(figsize=(8, 6))
+
+# Plot all points
+plt.scatter(features_2d[:, 0], features_2d[:, 1], c=kmeans.labels_, cmap='viridis', alpha=0.5)
+
+# Plot points from similar_ids[:10] with a different color
+for i, txt in enumerate(data['id']):
+    if txt in similar_ids[:10]:
+        plt.scatter(features_2d[i, 0], features_2d[i, 1], color='red', label='Best')
+
+# Annotate each point with its id
+for i, txt in enumerate(data['id']):
+    plt.annotate(txt, (features_2d[i, 0], features_2d[i, 1]), fontsize=8)
+
+plt.colorbar(label='Cluster')
+plt.title('Clusters Visualization (PCA)')
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
+plt.legend()
+plt.show()
