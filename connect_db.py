@@ -2,6 +2,48 @@ import json
 import mysql.connector
 
 
+def get_recommendation():
+    try:
+        cursor = connection.cursor();
+        query = """
+                    SELECT chat_id, cuisines, types, price FROM cuisinebot.recommendation WHERE companies="-1";
+                """
+        cursor.execute(query)
+        results = cursor.fetchall()
+
+        for result in results:
+            chat_id = result[0]
+            cuisines = result[1]
+            types = result [2]
+            price = result[3]
+
+        return chat_id, cuisines, types, price
+
+    except mysql.connector.Error as error:
+        print("Ошибка при работе с базой данных: {}".format(error))
+
+
+def get_recommendation():
+    try:
+        cursor = connection.cursor()
+        query = """
+                    SELECT id, cuisines, types, price FROM cuisinebot.recommendation WHERE companies="-1" LIMIT 1;
+                """
+        cursor.execute(query)
+        results = cursor.fetchall()
+
+        for result in results:
+            id = result[0]
+            cuisines = result[1]
+            types = result [2]
+            price = result[3]
+
+        return id, cuisines, types, price
+
+    except mysql.connector.Error as error:
+        print("Ошибка при работе с базой данных: {}".format(error))
+
+
 def get_connection():
     try:
         with open('config.json', 'r') as config_file:
@@ -82,9 +124,25 @@ def get_data():
         print("Ошибка при работе с базой данных: {}".format(error))
 
 
+def insert_similar_ids(record_id, similar_ids):
+    try:
+        cursor = connection.cursor()
+        query = """
+                    UPDATE `cuisinebot`.`recommendation`
+                    SET  `chosen_company` = %s
+                    WHERE (id = %s);
+                """
+        cursor.execute(query, (similar_ids, record_id))
+        connection.commit()
+        print("Данные успешно вставлены.")
+    except mysql.connector.Error as error:
+        print("Ошибка при вставке данных: {}".format(error))
+
+
+
 connection = get_connection()
 
 if connection:
     X, y = get_data()
-    print(X)
+    record_id, user_cuisines, user_types, user_price = get_recommendation()
 
