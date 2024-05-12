@@ -51,12 +51,11 @@ new_data = np.array([user_data])
 
 distances, indices = knn.kneighbors(new_data)
 
-similar_ids = ','.join(map(str, data.iloc[indices[0]]['id'].values))
-
-print("Best:", similar_ids)
+similar_ids_str = ','.join(map(str, data.iloc[indices[0]]['id'].values))
+print("Best:", similar_ids_str)
 print("Расстояния до ближайших соседей:", ', '.join(map(str, distances[0])))
 
-insert_similar_ids(record_id, similar_ids)
+insert_similar_ids(record_id, similar_ids_str)
 
 pca = PCA(n_components=NUMBER_OF_PCA)
 features_2d = pca.fit_transform(features)
@@ -65,7 +64,7 @@ plt.figure(figsize=(8, 6))
 plt.scatter(features_2d[:, 0], features_2d[:, 1], alpha=0.5)
 
 for i, txt in enumerate(data['id']):
-    if txt in similar_ids:
+    if str(txt) in similar_ids_str:
         plt.scatter(features_2d[i, 0], features_2d[i, 1], color='red')
 
 for i, txt in enumerate(data['id']):
@@ -74,5 +73,6 @@ for i, txt in enumerate(data['id']):
 plt.title('PCA')
 plt.xlabel('C 1')
 plt.ylabel('C 2')
+
 plt.legend()
 plt.show()
