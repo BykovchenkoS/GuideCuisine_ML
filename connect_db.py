@@ -134,10 +134,59 @@ def insert_similar_ids(record_id, similar_ids):
                 """
         cursor.execute(query, (similar_ids, record_id))
         connection.commit()
-        print("Данные успешно вставлены.")
+        print("Данные успешно вставлены в chosen_companies.")
     except mysql.connector.Error as error:
         print("Ошибка при вставке данных: {}".format(error))
 
+
+def insert_similar_ids(record_id, similar_ids):
+    try:
+        cursor = connection.cursor()
+
+        insert_query = """
+            INSERT INTO `cuisinebot`.`recommendation` (`id`, `chosen_company`)
+            VALUES (%s, %s);
+        """
+        cursor.execute(insert_query, (record_id, similar_ids))
+        connection.commit()
+        print("Данные успешно вставлены в recommendation.")
+
+        cursor.execute("SELECT latitude, longitude FROM `cuisinebot`.`recommendation` WHERE id = %s", (record_id,))
+        recommendation_data = cursor.fetchone()
+        latitude = recommendation_data[0]
+        longitude = recommendation_data[1]
+
+        filter_query = """
+            SELECT DISTINCT c.id 
+            FROM cuisinebot.companies c
+            LEFT JOIN cuisinebot.opening_hours oh ON c.id = oh.id_company
+            WHERE c.kid_friendly = 0 
+            AND c.pet_friendly = 0 
+            AND CURTIME() BETWEEN oh.open_hour AND oh.close_hour 
+            AND DAYNAME(CURDATE()) = oh.day 
+            AND (
+                SELECT 
+                    6371 * acos(
+                        cos(radians(c.latitude)) * cos(radians(%s)) * cos(radians(%s) - radians(c.longitude)) +
+                        sin(radians(c.latitude)) * sin(radians(%s))
+                    ) 
+                ) < 1;
+        """
+        cursor.execute(filter_query, (latitude, longitude, latitude))
+        filtered_records = cursor.fetchall()
+
+        update_query = """
+            UPDATE `cuisinebot`.`recommendation`
+            SET `chosen_company` = %s
+            WHERE id = %s;
+        """
+        for row in filtered_records:
+            cursor.execute(update_query, (similar_ids, row[0]))
+
+        connection.commit()
+        print("Данные успешно вставлены в chosen_companies.")
+    except mysql.connector.Error as error:
+        print("Ошибка при вставке данных: {}".format(error))
 
 
 connection = get_connection()
