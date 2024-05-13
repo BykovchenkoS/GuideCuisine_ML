@@ -129,12 +129,12 @@ def insert_similar_ids(record_id, similar_ids):
         cursor = connection.cursor()
         query = """
                     UPDATE `cuisinebot`.`recommendation`
-                    SET  `chosen_company` = %s
+                    SET  `companies` = %s
                     WHERE (id = %s);
                 """
         cursor.execute(query, (similar_ids, record_id))
         connection.commit()
-        print("Данные успешно вставлены в chosen_companies.")
+        print("Данные успешно вставлены в companies.")
     except mysql.connector.Error as error:
         print("Ошибка при вставке данных: {}".format(error))
 
