@@ -5,9 +5,9 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-from connect_db import record_id, user_cuisines, user_types, user_price, insert_similar_ids
+from connect_db import record_id, user_cuisines, user_types, user_price, insert_similar_ids, filter_similar_ids
 
-NUMBER_OF_NEIGHBORS = 3  # It influences the number of best IDs
+NUMBER_OF_NEIGHBORS = 30 # It influences the number of best IDs
 NUMBER_OF_PCA = 2
 
 
@@ -55,7 +55,8 @@ similar_ids_str = ','.join(map(str, data.iloc[indices[0]]['id'].values))
 print("Best:", similar_ids_str)
 print("Расстояния до ближайших соседей:", ', '.join(map(str, distances[0])))
 
-insert_similar_ids(record_id, similar_ids_str)
+filtered_result = filter_similar_ids(similar_ids_str)
+insert_similar_ids(record_id, filtered_result)
 
 pca = PCA(n_components=NUMBER_OF_PCA)
 features_2d = pca.fit_transform(features)
