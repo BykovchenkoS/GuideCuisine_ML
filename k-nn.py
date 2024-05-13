@@ -57,23 +57,3 @@ print("Расстояния до ближайших соседей:", ', '.join(
 
 filtered_result = filter_similar_ids(similar_ids_str)
 insert_similar_ids(record_id, filtered_result)
-
-pca = PCA(n_components=NUMBER_OF_PCA)
-features_2d = pca.fit_transform(features)
-
-plt.figure(figsize=(8, 6))
-plt.scatter(features_2d[:, 0], features_2d[:, 1], alpha=0.5)
-
-for i, txt in enumerate(data['id']):
-    if str(txt) in similar_ids_str:
-        plt.scatter(features_2d[i, 0], features_2d[i, 1], color='red')
-
-for i, txt in enumerate(data['id']):
-    plt.annotate(txt, (features_2d[i, 0], features_2d[i, 1]), fontsize=12)
-
-plt.title('PCA')
-plt.xlabel('C 1')
-plt.ylabel('C 2')
-
-plt.legend()
-plt.show()

@@ -6,27 +6,6 @@ def get_recommendation():
     try:
         cursor = connection.cursor()
         query = """
-                    SELECT chat_id, cuisines, types, price FROM cuisinebot.recommendation WHERE companies="-1";
-                """
-        cursor.execute(query)
-        results = cursor.fetchall()
-
-        for result in results:
-            chat_id = result[0]
-            cuisines = result[1]
-            types = result[2]
-            price = result[3]
-
-        return chat_id, cuisines, types, price
-
-    except mysql.connector.Error as error:
-        print("Ошибка при работе с базой данных: {}".format(error))
-
-
-def get_recommendation():
-    try:
-        cursor = connection.cursor()
-        query = """
                     SELECT id, cuisines, types, price FROM cuisinebot.recommendation WHERE companies="-1" LIMIT 1;
                 """
         cursor.execute(query)
