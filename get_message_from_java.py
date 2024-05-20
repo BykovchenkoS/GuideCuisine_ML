@@ -10,9 +10,9 @@ def run_code():
     if not os.path.exists("data.csv"):
         subprocess.run(["python", "createCSV.py"])
     subprocess.run(["python", "k-nn.py"])
+    return "Ok!!!"
 
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=5050)
-    # from waitress import serve
-    # serve(app, host="localhost", port=5050)
+    from waitress import serve
+    serve(app, host="localhost", port=5050)

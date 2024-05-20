@@ -13,12 +13,12 @@ def get_recommendation():
         results = cursor.fetchall()
 
         for result in results:
-            record_id = result[0]
+            id = result[0]
             cuisines = result[1]
             types = result[2]
             price = result[3]
 
-        return record_id, cuisines, types, price
+        return id, cuisines, types, price
 
     except mysql.connector.Error as error:
         print("Ошибка при работе с базой данных: {}".format(error))
@@ -104,7 +104,7 @@ def get_data():
         print("Ошибка при работе с базой данных: {}".format(error))
 
 
-def insert_similar_ids(record_id, similar_ids):
+def insert_similar_ids(bot_record_id, similar_ids):
     try:
         cursor = connection.cursor()
         query = """
@@ -112,11 +112,11 @@ def insert_similar_ids(record_id, similar_ids):
                     SET  `companies` = %s
                     WHERE (id = %s);
                 """
-        cursor.execute(query, (similar_ids, record_id))
+        cursor.execute(query, (similar_ids, bot_record_id))
         connection.commit()
         print("Данные успешно вставлены в companies.")
 
-        update_recommendation(record_id)
+        update_recommendation(bot_record_id)
 
     except mysql.connector.Error as error:
         print("Ошибка при вставке данных: {}".format(error))
