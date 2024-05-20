@@ -57,3 +57,5 @@ print("Расстояния до ближайших соседей:", ', '.join(
 
 filtered_result = filter_similar_ids(similar_ids_str)
 insert_similar_ids(record_id, filtered_result)
+
+

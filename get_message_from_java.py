@@ -1,12 +1,18 @@
 from flask import Flask
+import os.path
+import subprocess
 
 app = Flask(__name__)
 
+
 @app.route('/api/run_code', methods=['POST'])
 def run_code():
-    print("WORKS!!!!!!!")
-    return "OK"
-    
+    if not os.path.exists("data.csv"):
+        subprocess.run(["python", "createCSV.py"])
+    subprocess.run(["python", "k-nn.py"])
+
 
 if __name__ == '__main__':
     app.run(host='localhost', port=5050)
+    # from waitress import serve
+    # serve(app, host="localhost", port=5050)

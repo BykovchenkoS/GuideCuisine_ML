@@ -1,5 +1,6 @@
 import json
 import mysql.connector
+from send_message_to_java import update_recommendation
 
 
 def get_recommendation():
@@ -12,12 +13,12 @@ def get_recommendation():
         results = cursor.fetchall()
 
         for result in results:
-            id = result[0]
+            record_id = result[0]
             cuisines = result[1]
-            types = result [2]
+            types = result[2]
             price = result[3]
 
-        return id, cuisines, types, price
+        return record_id, cuisines, types, price
 
     except mysql.connector.Error as error:
         print("Ошибка при работе с базой данных: {}".format(error))
@@ -114,6 +115,9 @@ def insert_similar_ids(record_id, similar_ids):
         cursor.execute(query, (similar_ids, record_id))
         connection.commit()
         print("Данные успешно вставлены в companies.")
+
+        update_recommendation(record_id)
+
     except mysql.connector.Error as error:
         print("Ошибка при вставке данных: {}".format(error))
 
@@ -144,7 +148,7 @@ def filter_similar_ids(similar_ids_str):
                         cos(radians(c.latitude)) * cos(radians(%s)) * cos(radians(%s) - radians(c.longitude)) +
                         sin(radians(c.latitude)) * sin(radians(%s))
                     ) 
-                ) < 1;
+                ) < 3;
         """.format(similar_ids_str)
 
         cursor.execute(filter_query, (latitude, longitude, latitude))
@@ -154,7 +158,7 @@ def filter_similar_ids(similar_ids_str):
         filtered_ids_str = ','.join(filtered_ids)
 
         if filtered_ids_str == '':
-            filtered_ids_str = '-1'
+            filtered_ids_str = '-2'
 
         return filtered_ids_str
     except mysql.connector.Error as error:
