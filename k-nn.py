@@ -56,6 +56,7 @@ print("Best:", similar_ids_str)
 print("Расстояния до ближайших соседей:", ', '.join(map(str, distances[0])))
 
 filtered_result = filter_similar_ids(similar_ids_str)
+print(filtered_result)
 insert_similar_ids(record_id, filtered_result)
 
 

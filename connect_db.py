@@ -124,9 +124,7 @@ def insert_similar_ids(bot_record_id, similar_ids):
 
 def filter_similar_ids(similar_ids_str):
     try:
-        print('в фильтре 1->', similar_ids_str)
         cursor = connection.cursor()
-        print('в фильтре 2 -> ', similar_ids_str)
         cursor.execute("SELECT latitude, longitude FROM `cuisinebot`.`recommendation` WHERE id = %s", (record_id,))
         recommendation_data = cursor.fetchone()
 
@@ -154,7 +152,8 @@ def filter_similar_ids(similar_ids_str):
         cursor.execute(filter_query, (latitude, longitude, latitude))
         filtered_records = cursor.fetchall()
 
-        filtered_ids = [str(record[0]) for record in filtered_records]
+        # Ограничиваем количество отфильтрованных записей до 5
+        filtered_ids = [str(record[0]) for record in filtered_records[:5]]
         filtered_ids_str = ','.join(filtered_ids)
 
         if filtered_ids_str == '':
