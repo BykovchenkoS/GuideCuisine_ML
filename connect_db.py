@@ -18,7 +18,7 @@ def get_recommendation():
             types = result[2]
             price = result[3]
 
-        return id, cuisines, types, price
+            return id, cuisines, types, price
 
     except mysql.connector.Error as error:
         print("Ошибка при работе с базой данных: {}".format(error))
