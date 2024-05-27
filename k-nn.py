@@ -8,8 +8,6 @@ from sklearn.decomposition import PCA
 from connect_db import record_id, user_cuisines, user_types, user_price, insert_similar_ids, filter_similar_ids
 
 NUMBER_OF_NEIGHBORS = 30 # It influences the number of best IDs
-NUMBER_OF_PCA = 2
-
 
 def one_hot_encoding(categories, values):
     encoded_values = np.zeros(len(categories))
@@ -37,9 +35,10 @@ user_price = str(user_price)
 
 encoded_cuisines = one_hot_encoding(range(1, 13), user_cuisines)
 encoded_types = one_hot_encoding(range(1, 9), user_types)
-transformed_price = transform_price(user_price)
+transformed_price = float(transform_price(user_price))
 
 user_data = [record_id] + encoded_cuisines + encoded_types + [transformed_price] + [0]
+print(user_data)
 
 data = pd.read_csv("data.csv")
 features = data.drop(columns=["id", "label_suitability"])

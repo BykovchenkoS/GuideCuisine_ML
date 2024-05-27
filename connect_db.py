@@ -168,5 +168,6 @@ connection = get_connection()
 
 if connection:
     X, y = get_data()
+    #Вот тут ломается, хотя если запустить просто k-nn, то все ок
     record_id, user_cuisines, user_types, user_price = get_recommendation()
 
