@@ -12,13 +12,16 @@ def get_recommendation():
         cursor.execute(query)
         results = cursor.fetchall()
 
-        for result in results:
+        if results:
+            result = results[0]
             id = result[0]
             cuisines = result[1]
             types = result[2]
             price = result[3]
-
             return id, cuisines, types, price
+        else:
+            print("No recommendation found with companies='-1'")
+            return None, None, None, None
 
     except mysql.connector.Error as error:
         print("Ошибка при работе с базой данных: {}".format(error))
@@ -125,31 +128,56 @@ def insert_similar_ids(bot_record_id, similar_ids):
 def filter_similar_ids(similar_ids_str):
     try:
         cursor = connection.cursor()
-        cursor.execute("SELECT latitude, longitude FROM `cuisinebot`.`recommendation` WHERE id = %s", (record_id,))
+        cursor.execute("SELECT latitude, longitude, pet, kid FROM `cuisinebot`.`recommendation` WHERE id = %s", (record_id,))
         recommendation_data = cursor.fetchone()
 
         latitude = recommendation_data[0]
         longitude = recommendation_data[1]
 
-        filter_query = """
-            SELECT DISTINCT c.id 
-            FROM cuisinebot.companies c
-            LEFT JOIN cuisinebot.opening_hours oh ON c.id = oh.id_company
-            WHERE c.id IN ({})
-            AND c.kid_friendly = 0 
-            AND c.pet_friendly = 0 
-            AND CURTIME() BETWEEN oh.open_hour AND oh.close_hour 
-            AND DAYNAME(CURDATE()) = oh.day 
-            AND (
-                SELECT 
-                    6371 * acos(
-                        cos(radians(c.latitude)) * cos(radians(%s)) * cos(radians(%s) - radians(c.longitude)) +
-                        sin(radians(c.latitude)) * sin(radians(%s))
-                    ) 
-                ) < 3;
-        """.format(similar_ids_str)
+        pet = recommendation_data[2]
+        if pet == '0':
+            pet = '0, 1'
+        print('pet: ', pet)
 
-        cursor.execute(filter_query, (latitude, longitude, latitude))
+        kid = recommendation_data[3]
+        if kid == '0':
+            kid = '0, 1'
+        print('kid: ', kid)
+
+        filter_query = """
+            SELECT DISTINCT(c.id)  
+                FROM cuisinebot.companies c  
+                LEFT JOIN cuisinebot.opening_hours oh ON c.id = oh.id_company  
+                WHERE c.kid_friendly IN (%s)  
+                  AND c.pet_friendly IN (%s) 
+                  AND CURTIME() BETWEEN oh.open_hour AND oh.close_hour  
+                  AND DAYNAME(CURDATE()) = oh.day  
+                  AND (6371 * acos(
+                       cos(radians(c.latitude)) * cos(radians(%s)) * cos(radians(%s) - radians(c.longitude)) + 
+                       sin(radians(c.latitude)) * sin(radians(%s))
+                  )) < 1;
+
+        """
+
+        # filter_query = """
+        #     SELECT DISTINCT c.id
+        #     FROM cuisinebot.companies c
+        #     LEFT JOIN cuisinebot.opening_hours oh ON c.id = oh.id_company
+        #     WHERE c.id IN ({})
+        #     AND c.kid_friendly = 0
+        #     AND c.pet_friendly = 0
+        #     AND CURTIME() BETWEEN oh.open_hour AND oh.close_hour
+        #     AND DAYNAME(CURDATE()) = oh.day
+        #     AND (
+        #         SELECT
+        #             6371 * acos(
+        #                 cos(radians(c.latitude)) * cos(radians(%s)) * cos(radians(%s) - radians(c.longitude)) +
+        #                 sin(radians(c.latitude)) * sin(radians(%s))
+        #             )
+        #         ) < 1;
+        # """.format(similar_ids_str)
+
+        cursor.execute(filter_query, (kid, pet, latitude, longitude, latitude))
         filtered_records = cursor.fetchall()
 
         # Ограничиваем количество отфильтрованных записей до 5
