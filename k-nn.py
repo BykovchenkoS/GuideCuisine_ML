@@ -9,10 +9,15 @@ from connect_db import record_id, user_cuisines, user_types, user_price, insert_
 
 NUMBER_OF_NEIGHBORS = 30 # It influences the number of best IDs
 
+
 def one_hot_encoding(categories, values):
     encoded_values = np.zeros(len(categories))
     for value in values.split(','):
-        encoded_values[int(value) - 1] = 1
+        index = int(value) - 1
+        if 0 <= index < len(categories):
+            encoded_values[index] = 1
+        else:
+            print(f"Значение {value} выходит за границы для категорий с размером {len(categories)}")
     return encoded_values.tolist()
 
 
